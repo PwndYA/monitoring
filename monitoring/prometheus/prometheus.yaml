@@ -7,17 +7,17 @@ global:
   # Attach these labels to any time series or alerts when communicating with
   # external systems (federation, remote storage, Alertmanager).
   external_labels:
-      monitor: 'Monitoring Course'
+      monitor: 'Prometheus Monitoring'
 
 # Load and evaluate rules in this file every 'evaluation_interval' seconds.
 
 rule_files:
   - rules.yml
-# alerting:
-#   alertmanagers:
-#   - static_configs:
-#     - targets:
-#       - 'alertmanager:9093'
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - 'alertmanager:9093'
 
 # A scrape configuration containing exactly one endpoint to scrape:
 # Here it's Prometheus itself.
