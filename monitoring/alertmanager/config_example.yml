@@ -1,4 +1,4 @@
-# !!!Rename this File to config.yml!!!
+# !!!Rename this File to config.yml and comment out the api you do not need!!!
 global:
   resolve_timeout: 1m
   slack_api_url: '<SLACK_WEBHOOK>'
