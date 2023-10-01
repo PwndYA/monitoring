@@ -1,6 +1,7 @@
 # Change Name to docker-compose.yaml
 version: "2.4"
 
+# JSON Logging
 # x-logs:
 #   &json-logging
 #   driver: "json-file"
@@ -8,11 +9,12 @@ version: "2.4"
 #     max-size: "200m"
 #     max-file: "5"
 
-# x-logs:
-#   &loki-logging
-#   driver: loki
-#   options:
-#     loki-url: "http://localhost:3100/loki/api/v1/push"
+# Loki Logging
+x-logs:
+  &loki-logging
+  driver: loki
+  options:
+    loki-url: "http://localhost:3100/loki/api/v1/push"
 
 services:
   standalone-exporter:
@@ -25,6 +27,7 @@ services:
       - 9999:9999
     networks:
       - monitoring
+    logging: *loki-logging
 
   in-app-exporter:
     build:
@@ -35,14 +38,7 @@ services:
       - 9998:9999
     networks:
       - monitoring
-
-  # geth-mainnet:
-  #   image: ethereum/client-go:v1.10.16
-  #   command: ["--http", "--http.addr", "geth-mainnet", "--http.vhosts", "*", "--gcmode", "full", "--mainnet", "--metrics", "--pprof", "--pprof.addr", "0.0.0.0"]
-  #   ports:
-  #     - 6060:6060
-  #   networks:
-  #     - monitoring
+    logging: *loki-logging
 
   node-exporter:
     image: prom/node-exporter:latest
@@ -53,6 +49,7 @@ services:
       - 9100:9100
     networks:
       - monitoring
+    logging: *loki-logging
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor
@@ -66,6 +63,7 @@ services:
       - 8080:8080
     networks:
       - monitoring
+    logging: *loki-logging
 
   prometheus:
     image: prom/prometheus:latest
@@ -81,6 +79,7 @@ services:
       - 9090:9090
     networks:
       - monitoring
+    logging: *loki-logging
   
   grafana:
     image: grafana/grafana:latest
@@ -89,7 +88,6 @@ services:
       - gf-data:/var/lib/grafana
       - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
       - ./monitoring/grafana/datasources/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
-      # - ./monitoring/grafana/plugins/camptocamp-prometheus-alertmanager-datasource:/var/lib/grafana/plugins/camptocamp-prometheus-alertmanager-datasource
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PW}
       - GF_USERS_ALLOW_SIGN_UP=false
@@ -101,6 +99,7 @@ services:
       - 3000:3000
     networks:
       - monitoring
+    logging: *loki-logging
 
   alertmanager:
     image: prom/alertmanager:latest
@@ -113,6 +112,7 @@ services:
       - 9093:9093
     networks:
       - monitoring
+    logging: *loki-logging
 
 # Docker Contrainer for Alertmanager to Discord Push
   alertmanager-discord:
@@ -120,25 +120,25 @@ services:
     environment:
       - DISCORD_WEBHOOK=https://discord.com/api/webhooks/NUMBER_HERE/ID_HERE
 
-  # loki:
-  #   image: grafana/loki:2.5.0
-  #   volumes:
-  #     - ./monitoring/loki/loki-config.yaml:/etc/loki/local-config.yaml
-  #   ports:
-  #     - "3100:3100"
-  #   command: -config.file=/etc/loki/local-config.yaml
-  #   networks:
-  #     - monitoring
+  loki:
+    image: grafana/loki:2.5.0
+    volumes:
+      - ./monitoring/loki/loki-config.yaml:/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - monitoring
 
-  # promtail:
-  #   image: grafana/promtail:2.5.0
-  #   volumes:
-  #     - /var/log:/var/log
-  #     - /var/lib/docker/containers:/var/lib/docker/containers:ro
-  #     - ./monitoring/promtail/config.yaml:/etc/promtail/promtail-config.yaml
-  #   command: -config.file=/etc/promtail/config.yml
-  #   networks:
-  #     - monitoring
+  promtail:
+    image: grafana/promtail:2.5.0
+    volumes:
+      - /var/log:/var/log
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./monitoring/promtail/config.yaml:/etc/promtail/promtail-config.yaml
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - monitoring
 
 networks:
   monitoring:
